@@ -24,9 +24,14 @@ class Curl extends AbstractCurl
 
         if (false === $data) {
             $errorMsg = curl_error($this->lastCurl);
-            $errorNo  = curl_errno($this->lastCurl);
+            $errorNo = curl_errno($this->lastCurl);
 
             throw new ClientException($errorMsg, $errorNo);
+        }
+
+        // cURL automatically handles Proxy rewrites, remove the "HTTP/1.0 200 Connection established" string
+        if ($this->proxy && false !== stripos($data, "HTTP/1.0 200 Connection established\r\n\r\n")) {
+            $data = str_ireplace("HTTP/1.0 200 Connection established\r\n\r\n", '', $data);
         }
 
         static::populateResponse($this->lastCurl, $data, $response);
